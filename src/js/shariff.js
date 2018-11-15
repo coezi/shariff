@@ -58,6 +58,9 @@ const Defaults = {
 
   flattrCategory: null,
 
+  // use the plain element which was provided, don't add buttonlists
+  useplain: false,
+
   // build URI from rel="canonical" or document.location
   url: function() {
     var url = global.document.location.href
@@ -78,10 +81,6 @@ class Shariff {
   constructor(element, options) {
     // the DOM element that will contain the buttons
     this.element = element
-
-    // Ensure elemnt is empty
-    $(element).empty()
-
     this.options = $.extend({}, Defaults, options, $(element).data())
 
     // filter available services to those that are enabled and initialize them
@@ -93,10 +92,23 @@ class Shariff {
       })
       .map(serviceName => services[serviceName](this))
 
-    this._addButtonList()
+    // default shariff behavior
+    if (!this.options.useplain) {
+      // Ensure elemnt is empty
+      $(element).empty()
 
-    if (this.options.backendUrl !== null && this.options.buttonStyle !== 'icon') {
-      this.getShares(this._updateCounts.bind(this))
+      if (this.options)
+        this._addButtonList()
+
+      if (this.options.backendUrl !== null && this.options.buttonStyle !== 'icon')
+        this.getShares(this._updateCounts.bind(this))
+    } 
+    // custom radionrw requirement because we wanna use our styles
+    else if(this.element.nodeName === 'A' && this.services.length === 1) {
+      $(this.element).attr('href', this.services[0]['shareUrl'])
+    } else {
+      console.log('shariff customized: hiding invalid shariff element')
+      $(this.element).attr('style', 'visibility: hidden;')
     }
   }
 
